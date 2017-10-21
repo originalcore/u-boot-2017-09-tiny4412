@@ -85,6 +85,10 @@ switch_to_hypervisor_ret:
 #endif
 #endif
 
+	bl led_config
+	bl led_off_all
+	bl led_on_1
+
 	bl	_main
 
 /*------------------------------------------------------------------------------*/
@@ -324,3 +328,77 @@ ENTRY(cpu_init_crit)
 	b	lowlevel_init		@ go setup pll,mux,memory
 ENDPROC(cpu_init_crit)
 #endif
+
+	.globl led_config
+led_config:
+	ldr r0, =0x110002E0 	@ GPM4CON address
+	ldr r1, [r0]
+	bic r1, r1, #0xFF00 	@ clear high 8bit
+	bic r1, r1, #0x00FF 	@ clear low 8bit
+	orr r1, r1, #0x1100 	@ config high 8bit as output model
+	orr r1, r1, #0x0011 	@ config low 8bit as output model
+	str r1, [r0]
+
+	ldr r0, =0x110002E8 	@ GPM4PUD address
+	ldr r1, [r0]
+	orr r1, r1, #0x00FF     @ config  0~3 bit pull up
+	str r1, [r0]
+
+	bx lr
+
+	.globl led_off_all
+led_off_all:
+	ldr r0, =0x110002E4 	@ GPM4DAT address
+	ldr r1, [r0]
+	orr r1, r1, #0x0F
+	str r1, [r0]
+
+	bx lr
+
+    .globl led_on_1
+led_on_1:
+	ldr r0, =0x110002E4 	@ GMP4DAT address
+	ldr r1, [r0]
+	bic r1, r1, #0x01 
+	str r1, [r0]
+
+	bx lr
+
+	.globl led_on_2
+led_on_2:
+	ldr r0, = 0x110002E4 	@ GMP4DAT address
+	ldr r1, [r0]
+	bic r1, r1, #0x02
+	str r1, [r0]
+
+	bx lr
+
+	.globl led_on_3
+led_on_3:
+	ldr r0, =0x110002E4 	@ GMP4DAT address
+	ldr r1, [r0]
+	bic r1, r1, #0x04
+	str r1, [r0]
+
+	bx lr
+
+	.globl led_on_4
+led_on_4:	
+	ldr r0, =0x110002E4
+	ldr r1, [r0]
+	bic r1, r1, #0x08
+	str r1, [r0]
+
+	bx lr
+
+	.globl bsp_delay
+bsp_delay:
+	ldr r0, =0x8FFFFFF
+
+loop:
+	sub r0, r0, #0x01
+	cmp r0, #0x00
+	bne loop
+
+	bx lr
+
